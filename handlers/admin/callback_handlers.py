@@ -13,9 +13,9 @@ from loader import dp, bot
 
 
 async def send_message_to_users(users, text_message):
-    tasks = [asyncio.create_task(bot.send_message(chat_id=user[0], text=text_message)) for user in users]
-    await asyncio.gather(*tasks)
-
+    for user in users:
+        await bot.send_message(chat_id=user[0], text=text_message)
+        await asyncio.sleep(0.2)
 
 @dp.callback_query(IsAdmin(),Text('mailing_accept'))
 async def start_mailing(call:CallbackQuery,state:FSMContext):
@@ -26,9 +26,6 @@ async def start_mailing(call:CallbackQuery,state:FSMContext):
 
     await send_message_to_users(users,text_message)
 
-    # for admin_id in ADMINS:
-    #     print(admin_id)
-    #     await bot.send_message(chat_id=admin_id,text=text_message)
     await call.message.edit_text('Розсилка розпочата!')
 
 @dp.callback_query(IsAdmin(),Text('mailing_edit'))
