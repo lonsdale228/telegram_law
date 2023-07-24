@@ -16,7 +16,7 @@ class GetMessage(StatesGroup):
     get_text=State()
 
 
-@dp.message(Text('Експортувати базу даних'))
+@dp.message(IsAdmin(),Text('Експортувати базу даних'))
 async def export_database(message:Message):
     file = os.path.abspath('tg.db')
     file = FSInputFile(file)
