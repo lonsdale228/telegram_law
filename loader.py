@@ -14,9 +14,3 @@ default_router.message.filter(F.chat.type == "private")
 dp.include_router(default_router)
 
 dp.message.filter(F.chat.type == "private")
-
-
-
-# The awesome trottling middleware
-# dp.callback_query.outer_middleware(ThrottlingMiddleware())
-# dp.message.outer_middleware(ThrottlingMiddleware())

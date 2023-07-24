@@ -4,6 +4,7 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 
 from db.add_user import add_user
+from db.change_user_activity import change_activity
 from db.get_user import get_user
 from filters.isUser import IsUser
 from loader import dp, bot
@@ -28,8 +29,11 @@ async def start_message(message: types.Message,state:FSMContext):
     await state.clear()
     await state.update_data(service_type='')
     test = await get_user(message.from_user.id)
+
     if not test:
         await add_user(message.from_user.id,message.from_user.full_name)
+    else:
+        await change_activity(message.from_user.id,is_active=1)
 
 
     buttons=[

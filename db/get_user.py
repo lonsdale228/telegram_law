@@ -9,6 +9,6 @@ async def get_user(tg_id:int):
 
 
 async def get_all_users():
-    users=cur.execute("SELECT tg_id FROM USERS").fetchall()
+    users=cur.execute("SELECT tg_id FROM USERS WHERE is_active = 1").fetchall()
     db.commit()
     return users

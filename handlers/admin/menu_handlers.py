@@ -31,7 +31,7 @@ async def mailing_edit(message:Message,state:FSMContext):
 
 @dp.message(IsAdmin(),GetMessage.get_text)
 async def get_text(message:Message,state:FSMContext):
-
+    print(message.text)
     if len(message.text)>3000:
         await message.answer(f'Ви ввели занадто довге повідомлення! Відредагуйте будь ласка.')
     else:

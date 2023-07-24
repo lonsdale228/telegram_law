@@ -5,11 +5,12 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message
 
+from config import admin_service
 from db.add_phone_number import add_phone
 from db.add_treatment import add_treatment
 from filters.isUser import IsUser
 from keyboards.dict_to_keyboard import get_keyboard
-from keyboards.inline_menu import menu, admin_service
+from keyboards.inline_menu import menu
 from loader import dp, bot
 from strings.strings import start_text, choose_consult_text, accept_menu_text, text_consult_desc, phone_consult_desc, \
     office_consult_desc

@@ -1,11 +1,13 @@
 import asyncio
 
-
+import aiogram
 from aiogram import types
+from aiogram.enums import ParseMode
 from aiogram.filters import Text
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
+from db.change_user_activity import change_activity
 from db.get_user import get_all_users
 from filters.isAdmin import IsAdmin
 from handlers.admin.menu_handlers import GetMessage
@@ -14,7 +16,10 @@ from loader import dp, bot
 
 async def send_message_to_users(users, text_message):
     for user in users:
-        await bot.send_message(chat_id=user[0], text=text_message)
+        try:
+            await bot.send_message(chat_id=user[0], text=text_message,parse_mode=ParseMode.HTML,disable_web_page_preview=True)
+        except aiogram.exceptions.TelegramForbiddenError:
+            await change_activity(user[0],is_active=0)
         await asyncio.sleep(0.2)
 
 @dp.callback_query(IsAdmin(),Text('mailing_accept'))
@@ -25,6 +30,8 @@ async def start_mailing(call:CallbackQuery,state:FSMContext):
     users=await get_all_users()
 
     await send_message_to_users(users,text_message)
+
+
 
     await call.message.edit_text('Розсилка розпочата!')
 

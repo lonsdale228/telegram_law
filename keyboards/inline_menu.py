@@ -27,14 +27,9 @@ menu={
     }
 
 
-#317465871
-admin_service={
-            "war_services": [317465871],
-            "aboard_services": [317465871],
-            "mobilization_services":[317465871],
-            "family_services":[317465871],
-            "credit_services":[317465871],
-            "administrative_services":[317465871],
-            "criminal_services":[317465871],
-            "another_services":[317465871]
-}
+
+
+
+
+
+
