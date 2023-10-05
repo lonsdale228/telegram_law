@@ -29,11 +29,10 @@ async def start_mailing(call:CallbackQuery,state:FSMContext):
 
     users=await get_all_users()
 
+    await call.message.edit_text('Розсилка розпочата!')
     await send_message_to_users(users,text_message)
 
 
-
-    await call.message.edit_text('Розсилка розпочата!')
 
 @dp.callback_query(IsAdmin(),Text('mailing_edit'))
 async def mailing(call:CallbackQuery,state:FSMContext):

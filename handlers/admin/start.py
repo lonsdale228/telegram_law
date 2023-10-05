@@ -9,7 +9,8 @@ from loader import dp
 @dp.message(IsAdmin(),Command("start"))
 async def admin_start(message:Message):
     buttons = [
-        [types.KeyboardButton(text='Виконати розсилку'),types.KeyboardButton(text='Експортувати базу даних'),types.KeyboardButton(text='📄Замінити файл')]
+        [types.KeyboardButton(text='Виконати розсилку'),types.KeyboardButton(text='Експортувати базу даних')],
+         [types.KeyboardButton(text='📄Замінити файл'),types.KeyboardButton(text='Статистика')]
     ]
 
     keyboard = types.ReplyKeyboardMarkup(keyboard=buttons, resize_keyboard=True)

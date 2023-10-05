@@ -6,7 +6,7 @@ from cachetools import TTLCache
 
 
 class ThrottlingMiddleware(BaseMiddleware):
-    RATE_LIMIT = 0.7
+    RATE_LIMIT = 0.5
 
     def __init__(self, rate_limit: float = RATE_LIMIT) -> None:
         self.cache: MutableMapping[int, None] = TTLCache(maxsize=10_000, ttl=rate_limit)

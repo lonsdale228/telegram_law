@@ -1,3 +1,5 @@
+import datetime
+
 from aiogram import types, F
 from aiogram.enums import ParseMode
 from aiogram.filters import Text
@@ -13,7 +15,7 @@ from keyboards.dict_to_keyboard import get_keyboard
 from keyboards.inline_menu import menu
 from loader import dp, bot
 from strings.strings import start_text, choose_consult_text, accept_menu_text, text_consult_desc, phone_consult_desc, \
-    office_consult_desc
+    office_consult_desc, short_consult_desc
 
 
 async def get_name(menu_name,btn):
@@ -32,7 +34,10 @@ async def get_name(menu_name,btn):
 @dp.callback_query(IsUser(),Text('consult_return'))
 async def sedasdand_random_value(callback: types.CallbackQuery,state:FSMContext):
     data=await state.get_data()
-    service_type=data["service_type"]
+    try:
+        service_type=data["service_type"]
+    except KeyError:
+        await callback.message.edit_text("Натисніть 'Записатися на консультацію' ще раз!")
 
     await callback.message.edit_text(f'{choose_consult_text%(await get_name("services",service_type))}',reply_markup=await get_keyboard('cons_type'))
 
@@ -52,9 +57,11 @@ async def send_random_value(callback: types.CallbackQuery,state:FSMContext):
 
     #print(data)
 
-
-    if data['service_type']=='':
-        await state.update_data(service_type=callback.data)
+    try:
+        if data['service_type']=='':
+            await state.update_data(service_type=callback.data)
+    except KeyError:
+        await state.update_data(service_type='')
 
 
     name_of_service=await get_name('services',callback.data)
@@ -76,13 +83,17 @@ async def show_consult(callback:types.CallbackQuery,state:FSMContext):
         consult = data['consult_type']
 
 
-    service_type=data['service_type']
+    try:
+        service_type = data['service_type']
+        service_name = menu['services'][service_type]
+    except KeyError:
+        await callback.message.edit_text("Натисніть 'Записатися на консультацію' ще раз!")
     # print("Aboba: ", service_type)
 
     # service_name=await get_name('services',service_type)
     # consult_name=await get_name('cons_type',callback.data)
 
-    service_name = menu['services'][service_type]
+
 
 
     consult_description=""
@@ -94,10 +105,12 @@ async def show_consult(callback:types.CallbackQuery,state:FSMContext):
             consult_description=phone_consult_desc
         case "consult_office":
             consult_description=office_consult_desc
+        case "consult_short":
+            consult_description=short_consult_desc
 
     #print("cons_desc: ", consult_description)
 
-    await callback.message.edit_text(f'{accept_menu_text%(service_name,consult_name)} \n{consult_description}',reply_markup=await get_keyboard('accept'))
+    await callback.message.edit_text(f'{accept_menu_text%(service_name,consult_name)} \n{consult_description}',reply_markup=await get_keyboard('accept'),disable_web_page_preview=True)
 
 
 
@@ -110,41 +123,52 @@ class Form(StatesGroup):
 @dp.callback_query(IsUser(),Text('phone_edit'))
 @dp.callback_query(IsUser(),Text('accept'))
 async def send_accept_message(callback:types.CallbackQuery,state:FSMContext):
-    data = await state.get_data()
-    service_type = data['service_type']
-    consult_type = data['consult_type']
-
-    # print("service_type: ",service_type)
-
-    try:
-        custom_question=data['custom_question']
-        phone_number=data['phone_number']
-    except KeyError:
-        custom_question=''
-        phone_number=''
+    # data = await state.get_data()
+    # service_type = data['service_type']
+    # consult_type = data['consult_type']
+    #
+    # # print("service_type: ",service_type)
+    #
+    # try:
+    #     custom_question=data['custom_question']
+    #     phone_number=data['phone_number']
+    # except KeyError:
+    #     custom_question=''
+    #     phone_number=''
     #(consult_type == 'consult_phone' or consult_type == 'another') and
-    if  phone_number=='':
-        await state.set_state(Form.get_phone_number)
-        await callback.message.edit_text("Введіть Ваш номер для зв'язку:")
-    else:
-        await add_treatment(callback.from_user.id,service_type,consult_type,custom_text=custom_question)
-
-        # await add_phone(callback.from_user.id,phone_number)
-        await state.clear()
-        await callback.message.edit_text("Ми незабаром з Вами зв'яжемося!")
 
 
 
-
-def phone_check(input_string,length=20):
-    import re
-    pattern = r"^[0-9+\-—–()]+$"
-    return bool(re.match(pattern, input_string) and len(input_string)<length)
+    # if  phone_number=='':
 
 
+    await state.set_state(Form.get_phone_number)
+    await callback.message.edit_text("Введіть Ваш номер телефону або e-mail для зв'язку?:")
+
+    # else:
+    #     ...
+    #     # await add_treatment(callback.from_user.id,service_type,consult_type,custom_text=custom_question)
+    #     #
+    #     # # await add_phone(callback.from_user.id,phone_number)
+    #     # await state.clear()
+    #     # await callback.message.edit_text("Дякуємо! Адвокат зв'яжеться з Вами протягом 10 хв.\n"
+    #     #                                  "<em>*час очікування може збільшитися якщо конкретний адвокат зараз у суді або запит залишено в неробочій період.</em>")
+    #
+
+
+
+# def phone_check(input_string,length=20):
+#     import re
+#     pattern = r"^[0-9+\-—–()]+$"
+#     return bool(re.match(pattern, input_string) and len(input_string)<length)
+
+@dp.callback_query(IsUser(),Text('text_back'))
 @dp.callback_query(IsUser(),Text('check_return'))
 async def save_number(call:types.CallbackQuery,state:FSMContext):
     data=await state.get_data()
+
+
+
     await state.update_data(custom_text='')
     phone_number=data["phone_number"]
 
@@ -155,60 +179,67 @@ async def save_number(call:types.CallbackQuery,state:FSMContext):
     ]
     keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons, resize_keyboard=True)
 
-    await call.message.edit_text(f"Ваш номер телефону: \n\n{phone_number}", reply_markup=keyboard)
+    await call.message.edit_text(f"Ваші контакти: \n\n{phone_number}", reply_markup=keyboard)
 
 
 @dp.message(IsUser(),Form.get_phone_number)
 async def save_number(message:Message,state:FSMContext):
-    if phone_check((message.text).strip()):
-        await state.update_data(phone_number=message.text)
-        await state.set_state(Form.phone_number_approve)
+    # if phone_check((message.text).strip()):
+    await state.update_data(phone_number=message.text)
 
-        buttons = [
-            [types.InlineKeyboardButton(text="✅Підтвердити номер", callback_data="phone_accept")],
-            [types.InlineKeyboardButton(text="✍️Відредагувати", callback_data="phone_edit")],
-            [types.InlineKeyboardButton(text="🔙Повернутися", callback_data="phone_back")]
-        ]
-        keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons, resize_keyboard=True)
+    await add_phone(message.from_user.id, message.text)
 
-        await message.reply(f"Ваш номер телефону: \n\n{message.text}", reply_markup=keyboard)
-
-    else:
-        await message.reply("""Ви ввели неприпустимий номер телефону!\n\n "Введіть Ваш номер для зв'язку:""")
-        await state.set_state(Form.get_phone_number)
+    await state.set_state(Form.phone_number_approve)
 
 
 
-@dp.callback_query(IsUser(),Text('agree'))
-# @dp.callback_query(IsUser(),Text('phone_accept'))
-async def phone_consult_approve(call:types.CallbackQuery,state:FSMContext):
-    data=await state.get_data()
-    phone_number=data['phone_number']
-    service_type=data['service_type']
-    service_name=menu['services'][service_type]
-    consult_type=data['consult_type']
-
-    try:
-        custom_question=data['custom_question']
-    except KeyError:
-        custom_question=''
 
 
-    await add_treatment(call.from_user.id, service_type, consult_type, custom_text=custom_question)
-    await add_phone(call.from_user.id,phone_number)
-    await state.clear()
-    await call.message.edit_text("Ми незабаром з Вами зв'яжемося!!!!")
+    buttons = [
+        [types.InlineKeyboardButton(text="✅Підтвердити контакти", callback_data="phone_accept")],
+        [types.InlineKeyboardButton(text="✍️Відредагувати", callback_data="phone_edit")],
+        [types.InlineKeyboardButton(text="🔙Повернутися", callback_data="phone_back")]
+    ]
+    keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons, resize_keyboard=True)
 
-    send_service=admin_service[service_type]
+    await message.reply(f"Ваші контакти: \n\n{message.text}", reply_markup=keyboard)
 
-    for admin in send_service:
-        await bot.send_message(chat_id=admin,text=f'<b>Новий запит на консультацію!</b>\n\n'
-                                                  f'Від: {call.from_user.full_name[:30]}\n'
-                                                  f'Телеграм клієнта: <a href="tg://user?id={call.from_user.id}">Клік</a>\n'
-                                                  f'Номер телефону: <code>{phone_number}</code>\n'
-                                                  f'Напрям: {service_name}\n'
-                                                  f'Тип консультації: {menu["cons_type"][consult_type]} \n'
-                                                  f'Ситуація: \n'
-                                                  f'"{custom_question}"',parse_mode=ParseMode.HTML)
+    # else:
+    #     await message.reply("""Ви ввели неприпустимий номер телефону!\n\n "Введіть Ваш номер для зв'язку:""")
+    #     await state.set_state(Form.get_phone_number)
+
+
+
+# @dp.callback_query(IsUser(),Text('agree'))
+# # @dp.callback_query(IsUser(),Text('phone_accept'))
+# async def phone_consult_approve(call:types.CallbackQuery,state:FSMContext):
+#     data=await state.get_data()
+#     phone_number=data['phone_number']
+#     service_type=data['service_type']
+#     service_name=menu['services'][service_type]
+#     consult_type=data['consult_type']
+#     try:
+#         custom_question=data['custom_question']
+#     except KeyError:
+#         custom_question=''
+#
+#
+#     await add_treatment(call.from_user.id, service_type, consult_type, custom_text=custom_question)
+#     await add_phone(call.from_user.id,phone_number)
+#     await state.clear()
+#     await call.message.edit_text("Дякуємо! Адвокат зв'яжеться з Вами протягом 10 хв.\n"
+#                                          "<em>*час очікування може збільшитися якщо конкретний адвокат зараз у суді або запит залишено в неробочій період.</em>")
+#
+#     send_service=admin_service[service_type]
+#
+#     for admin in send_service:
+#         await bot.send_message(chat_id=admin,text=f'<b>Новий запит на консультацію!</b>\n\n'
+#                                                   f'Від: {call.from_user.full_name[:30]}\n'
+#                                                   f'Телеграм клієнта: <a href="tg://user?id={call.from_user.id}">Клік</a>\n'
+#                                                   f'Контакти: <code>{phone_number}</code>\n'
+#                                                   f'Напрям: {service_name}\n'
+#                                                   f'Тип консультації: {menu["cons_type"][consult_type]} \n'
+#                                                   f'Ситуація: \n\n'
+#                                                   f'"{custom_question}"',parse_mode=ParseMode.HTML)
 
 

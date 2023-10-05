@@ -6,6 +6,7 @@ from aiogram.enums import ParseMode
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, FSInputFile
 
+from db.add_stat import add_click
 from db.add_user import add_user
 from db.get_user import get_user
 from filters.isUser import IsUser
@@ -18,6 +19,9 @@ from strings.strings import our_contacts
 async def asdasddsa(message:Message,state:FSMContext):
     await state.update_data(service_type='')
 
+    await add_click(btn_name=message.text)
+
+
     test = await get_user(message.from_user.id)
     if not test:
         await add_user(message.from_user.id, message.from_user.full_name)
@@ -27,11 +31,16 @@ async def asdasddsa(message:Message,state:FSMContext):
 
 @dp.message(IsUser(),F.text.contains('Наші контакти'))
 async def asdasddsa(message:Message):
+    await add_click(btn_name=message.text)
+
+
     await message.answer(our_contacts,
         parse_mode=ParseMode.HTML,disable_web_page_preview=True)
 
 @dp.message(IsUser(),F.text.contains('Корисна інформація'))
 async def send_more_info(message:Message):
-    file=os.path.abspath('files/file.pdf')
+    await add_click(btn_name=message.text)
+
+    file=os.path.abspath('files/info.pdf')
     file = FSInputFile(file)
     await bot.send_document(message.from_user.id,file,caption='Детальнішу інформацію можливо отримати тут')

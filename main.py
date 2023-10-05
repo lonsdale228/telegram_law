@@ -2,12 +2,14 @@ import asyncio
 
 import middlewares
 from db.run import db_start
+import loader
 from loader import dp, bot
 import logging
 
 import handlers
 
 async def main():
+    await bot.delete_webhook()
     await dp.start_polling(bot)
 
 

@@ -3,6 +3,7 @@ from aiogram.enums import ParseMode
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 
+from db.add_stat import add_click
 from db.add_user import add_user
 from db.change_user_activity import change_activity
 from db.get_user import get_user
@@ -18,9 +19,6 @@ async def setup_bot_commands():
 
 @dp.message(IsUser(),Command("start"))
 async def start_message(message: types.Message,state:FSMContext):
-
-    #print(test,type(test))
-
 
 
     await setup_bot_commands()
